@@ -11,7 +11,8 @@ pipeline {
 
         stage('Checkout') {
             steps {
-                git 'https://github.com/dhanushaws47-droid/aws-devops-ecommerce-project.git'
+                git branch: 'main',
+                url: 'https://github.com/dhanushaws47-droid/aws-devops-ecommerce-project.git'
             }
         }
 
