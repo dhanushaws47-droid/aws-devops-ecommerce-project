@@ -1,0 +1,66 @@
+pipeline {
+    agent any
+
+    environment {
+        AWS_REGION = 'eu-north-1'
+        ECR_REPO = '718307299153.dkr.ecr.eu-north-1.amazonaws.com/devops-backend'
+        IMAGE_TAG = 'latest'
+    }
+
+    stages {
+
+        stage('Checkout') {
+            steps {
+                git 'https://github.com/dhanushaws47-droid/aws-devops-ecommerce-project.git'
+            }
+        }
+
+        stage('Build') {
+            steps {
+                sh 'cd backend && npm install'
+            }
+        }
+
+        stage('Test') {
+            steps {
+                sh 'cd backend && echo "No tests yet"'
+            }
+        }
+
+        stage('Docker Build') {
+            steps {
+                sh 'docker build -t devops-backend ./backend'
+            }
+        }
+
+        stage('Login to ECR') {
+            steps {
+                sh '''
+                aws ecr get-login-password --region $AWS_REGION | \
+                docker login --username AWS --password-stdin $ECR_REPO
+                '''
+            }
+        }
+
+        stage('Push to ECR') {
+            steps {
+                sh '''
+                docker tag devops-backend:latest $ECR_REPO:$IMAGE_TAG
+                docker push $ECR_REPO:$IMAGE_TAG
+                '''
+            }
+        }
+
+        stage('Deploy') {
+            steps {
+                echo "Deploy step (ECS coming next phase)"
+            }
+        }
+    }
+
+    post {
+        failure {
+            echo "Rollback logic here (future)"
+        }
+    }
+}
