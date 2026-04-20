@@ -3,12 +3,9 @@ pipeline {
 
     environment {
         AWS_REGION = 'eu-north-1'
-        ECR_REPO = '718307299153.dkr.ecr.eu-north-1.amazonaws.com/pipeline {
-    agent any
-
-    environment {
-        AWS_REGION = 'eu-north-1'
-        ECR_REPO = '718307299153.dkr.ecr.eu-north-1.amazonaws.com/ecommerce-backend'
+        AWS_ACCOUNT_ID = '718307299153'
+        ECR_REPO_NAME = 'ecommerce-backend'
+        ECR_REGISTRY = "${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com"
         IMAGE_TAG = 'latest'
     }
 
@@ -43,7 +40,7 @@ pipeline {
             steps {
                 sh '''
                 aws ecr get-login-password --region $AWS_REGION | \
-                docker login --username AWS --password-stdin $ECR_REPO
+                docker login --username AWS --password-stdin $ECR_REGISTRY
                 '''
             }
         }
@@ -51,69 +48,8 @@ pipeline {
         stage('Push to ECR') {
             steps {
                 sh '''
-                docker tag devops-backend:latest $ECR_REPO:$IMAGE_TAG
-                docker push $ECR_REPO:$IMAGE_TAG
-                '''
-            }
-        }
-
-        stage('Deploy') {
-            steps {
-                echo "Deploy step (ECS coming next phase)"
-            }
-        }
-    }
-
-    post {
-        failure {
-            echo "Rollback logic here (future)"
-        }
-    }
-}-backend'
-        IMAGE_TAG = 'latest'
-    }
-
-    stages {
-
-        stage('Checkout') {
-            steps {
-                git branch: 'main',
-                url: 'https://github.com/dhanushaws47-droid/aws-devops-ecommerce-project.git'
-            }
-        }
-
-        stage('Build') {
-            steps {
-                sh 'cd backend && npm install'
-            }
-        }
-
-        stage('Test') {
-            steps {
-                sh 'cd backend && echo "No tests yet"'
-            }
-        }
-
-        stage('Docker Build') {
-            steps {
-                sh 'docker build -t ecommerce-backend ./backend'
-            }
-        }
-
-        stage('Login to ECR') {
-            steps {
-                sh '''
-                aws ecr get-login-password --region $AWS_REGION | \
-                docker login --username AWS --password-stdin $ECR_REPO
-                '''
-            }
-        }
-
-        stage('Push to ECR') {
-            steps {
-                sh '''
-                docker tag ecommerce-backend-backend:latest $ECR_REPO:$IMAGE_TAG
-                docker push $ECR_REPO:$IMAGE_TAG
+                docker tag ecommerce-backend:latest $ECR_REGISTRY/$ECR_REPO_NAME:$IMAGE_TAG
+                docker push $ECR_REGISTRY/$ECR_REPO_NAME:$IMAGE_TAG
                 '''
             }
         }
